@@ -64,7 +64,7 @@ class Granma(object):
         self.__fileOut = open(directory + fileOutName + ".txt", "a")
         self.__fileOut2 = open(directory + fileOutName + "_utf-8.txt", "a")
         self.__pageCounter = 0
-        queryInput = input("Insert search term (if none, enter \"none\"):")
+        queryInput = input("Insert search term (if none, press enter:")
         self.__query = queryInput.strip()
         self.__driver = webdriver.Firefox()
 
@@ -88,18 +88,27 @@ class Granma(object):
     def getQuery(self):
         return self.__query
 
-    def loadFirstResultsPage(self, startDate, endDate, query):
-        if query == "none":
-            query = ""
-        firstPage = "http://www.granma.cu/archivo?page=1&q=" + query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
+    def loadFirstResultsPage(self, startDate, endDate):
+        firstPage = "http://www.granma.cu/archivo?page=1&q=" + self.__query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
         self.__driver.get(firstPage)
+
+    def getNumberOfResultsPages(self):
+        resultsdiv = self.__driver.find_element_by_class_name('row.g-searchpage-form')
+        resultsText = resultsdiv.find_element_by_tag_name("p")
+        results = resultsText.text
+        print('Results:', results)
+        results = results.split(' resultados.')[0]
+        results = results.split(' ')[(len(results.split(' ')) - 1)]
+        results = int(results)
+        resultPages = math.ceil(results / 20)
+        print('Result pages:', resultPages)
+        time.sleep(random.uniform(2, 10))
+        return resultPages
 
     def goToNextResultsPage(self, startDate, endDate, numResultsPages, query):
         #date = self.urlDate(date)
         print("Page", (numResultsPages-1), "done")     # put at end of each page rather than beginning
-        if query == "none":
-            query = ""
-        nextPage = "http://www.granma.cu/archivo?page=" + str(numResultsPages) + "&q=" + query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
+        nextPage = "http://www.granma.cu/archivo?page=" + str(numResultsPages) + "&q=" + self.__query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
         self.__driver.get(nextPage)
         print("Getting page", numResultsPages, "URL:", nextPage)
         time.sleep(random.uniform(2, 5))
@@ -118,7 +127,7 @@ class Granma(object):
                 print("Error in getting sublinks")
                 print(e)
         print("Sublinks:", linksList)
-        print("Loading sublinks done")
+        print("Loading sublinks done", end="\n")
         time.sleep(random.uniform(5, 10))
         return linksList
 
@@ -174,10 +183,12 @@ def main():
     gcs = Granma()
     startdate = gcs.getStartDate()
     enddate = gcs.getEndDate()
-    query = gcs.getQuery()
-    gcs.loadFirstResultsPage(startdate, enddate, query)
+    gcs.loadFirstResultsPage(startdate, enddate)
+    numResultsPages = gcs.getNumberOfResultsPages()
+
     n = 1
-    while True: # An inequality can be used here to determine number of results and number of results pages
+
+    while n <= numResultsPages: # An inequality can be used here to determine number of results and number of results pages
         print('\n#################################### Page ' + str(n) + " ####################################\n")
         try:
             linksList = gcs.getSubLinks()
@@ -187,7 +198,7 @@ def main():
             break
         gcs.printFullPageText(linksList)
         n += 1
-        gcs.goToNextResultsPage(startdate, enddate, n, query)
+        gcs.goToNextResultsPage(startdate, enddate, n)
 
 
 
