@@ -1,5 +1,5 @@
 # Theodore Chu
-# February 12, 2017
+# February 20, 2017
 # For the USC Lab on Non-Democratic Politics under the direction of Erin Baggott Carter and Brett Logan Carter
 # Scrapes the Granma (Cuba)
 # Prints all sections (including potentially unrelated sections such as sports)
@@ -105,7 +105,7 @@ class Granma(object):
         time.sleep(random.uniform(2, 10))
         return resultPages
 
-    def goToNextResultsPage(self, startDate, endDate, numResultsPages, query):
+    def goToNextResultsPage(self, startDate, endDate, numResultsPages):
         #date = self.urlDate(date)
         print("Page", (numResultsPages-1), "done")     # put at end of each page rather than beginning
         nextPage = "http://www.granma.cu/archivo?page=" + str(numResultsPages) + "&q=" + self.__query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
