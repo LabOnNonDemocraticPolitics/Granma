@@ -5,6 +5,8 @@
 # Prints all sections
 # Encodes in UTF-8
 
+# Waits 5-10 minutes every 100 pages to avoid crashing the archive
+
 import math  # this lets you do math
 import io   # allows encoding in utf-8
 import time  # this lets you slow down your scraper so you don't crash the website =/
@@ -194,3 +196,4 @@ main()
 
 totElapsedTime = time.time() - startTime
 print("Total elapsed time: ", totElapsedTime)
+print("Current time:", datetime.datetime.now().time())
