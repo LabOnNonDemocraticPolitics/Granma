@@ -1,39 +1,27 @@
 # Theodore Chu
-# February 20, 2017
+# March 4, 2017
 # For the USC Lab on Non-Democratic Politics under the direction of Erin Baggott Carter and Brett Logan Carter
 # Scrapes the Granma (Cuba)
-# Prints all sections (including potentially unrelated sections such as sports)
-# Use ISO-8859-1 Encoder to read the txt files
+# Prints all sections
+# Encodes in UTF-8
 
-# from __future__ import division # this lets you divide numbers and get floating results
 import math  # this lets you do math
-import re  # this lets you make string replacements: 'hi there'.replace(' there') --> 'hi'
-import os  # this lets you set system directories
+import io   # allows encoding in utf-8
 import time  # this lets you slow down your scraper so you don't crash the website =/
-import codecs  # symbols are annoying. this lets you replace them.
 import random  # this lets you draw random numbers.
 import datetime  # this lets you create a list of dates
-from datetime import timedelta  # same
 from selenium import webdriver  # the rest of these let you create your scraper
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
 
-# set your working directory
-writedir = 'C:\\Users\\Theodore\\Desktop\\Programming\\Scraping\\'
-
-
-#prompt for start date
-#prompt for end date
-#name the file out
-#load first date
-#get the number of results
-#go to the first page on the first date
-#get all links from the first page on the first date
-#go to each article from first page on first date. print to file
-#repeat for all links on first date (for loop)
-#repeat for all dates until the last date (for loop)
+# prompt for start date
+# prompt for end date
+# name the file out
+# load first date
+# get the number of results
+# go to the first page on the first date
+# get all links from the first page on the first date
+# go to each article from first page on first date. print to file
+# repeat for all links on first date (while loop)
+# repeat for all dates until the last date (while loop)
 
 # url = http://www.granma.cu/archivo?page=1&q=castro&dr=2017-01-12+al+2017-02-10
 
@@ -41,9 +29,10 @@ startTime = time.time()
 
 class Granma(object):
     def __init__(self):
-        directory = input("Enter Directory: (ex: C:/Users/Theodore/Desktop/Programming/Scraping/). Press Enter for example:")
+
+        directory = input("Enter Directory: (ex: C:/Users/Theodore/Desktop/Programming/Scraping/GranmaCuba/). Press Enter for example:")
         if directory == "":
-            directory = "C:/Users/Theodore/Desktop/Programming/Scraping/"
+            directory = "C:/Users/Theodore/Desktop/Programming/Scraping/GranmaCuba/"
 
         while True:
             try:
@@ -59,8 +48,7 @@ class Granma(object):
                 pass
 
         fileOutName = input("Enter file out name. Please omit \".txt\" (ex: gcs2016.txt):")
-        self.__fileOut = open(directory + fileOutName + ".txt", "a")
-        self.__fileOut2 = open(directory + fileOutName + "_utf-8.txt", "a")
+        self.__fileOut = io.open(directory + fileOutName + ".txt", "a", encoding="utf-8")
         self.__pageCounter = 0
         queryInput = input("Insert search term (if none, press enter:")
         self.__query = queryInput.strip()
@@ -83,9 +71,6 @@ class Granma(object):
     def getEndDate(self):
         return self.__endDate
 
-    def getQuery(self):
-        return self.__query
-
     def loadFirstResultsPage(self, startDate, endDate):
         firstPage = "http://www.granma.cu/archivo?page=1&q=" + self.__query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
         self.__driver.get(firstPage)
@@ -104,7 +89,6 @@ class Granma(object):
         return resultPages
 
     def goToNextResultsPage(self, startDate, endDate, numResultsPages):
-        #date = self.urlDate(date)
         print("Page", (numResultsPages-1), "done")     # put at end of each page rather than beginning
         nextPage = "http://www.granma.cu/archivo?page=" + str(numResultsPages) + "&q=" + self.__query + "&dr=" + str(startDate.year) + "-" + str(startDate.month) + "-" + str(startDate.day) + "+al+" + str(endDate.year) + "-" + str(endDate.month)+ "-" + str(endDate.day)
         self.__driver.get(nextPage)
@@ -132,35 +116,38 @@ class Granma(object):
     def printFullPageText(self, linksList):  # I'm exploring different ways to write into the file: print(text, file=filename), f.write, utf-8
         for url in linksList:
             try:
-                print(url)
-                print(url, file=self.__fileOut)
-                print(url.encode("utf-8"), file=self.__fileOut2)
                 self.__driver.get(url)
+                print(url)
                 time.sleep(random.uniform(1, 10))
 
-                # Print Header meta data
-                headerMeta = self.__driver.find_element_by_class_name("g-story-meta")
-                headerText = headerMeta.text
-                headerUTF = headerText.encode("utf-8")
-                print(headerText)
-                print(headerText, file=self.__fileOut)
-                print(headerUTF, file=self.__fileOut2)
+                # Print title
+                title = self.__driver.find_element_by_class_name("g-story-description")
+                titleText = title.text
+                print(titleText)
+                print(titleText, file=self.__fileOut)
+
+                # Print date
+                date = self.__driver.find_element_by_class_name("dateline")
+                dateText = date.text
+                print(dateText)
+                print(dateText, file=self.__fileOut)
 
                 # Print the story in the article
                 content = self.__driver.find_element_by_class_name("story-body-text.story-content")
                 storydata = content.find_elements_by_tag_name("p")
                 for story in storydata:
-                    print(story.text)
-                    print(story.text, file=self.__fileOut)
-                    storyTextUTF = story.text.encode("utf-8")
-                    print(storyTextUTF, file=self.__fileOut2)
+                    storyText = story.text
+                    print(storyText)
+                    print(storyText, file=self.__fileOut)
+
                 self.__pageCounter += 1
                 print("Article", self.__pageCounter, "printed")
-                print("Article", self.__pageCounter, "printed", file=self.__fileOut)
-                print("Article", self.__pageCounter, "printed", file=self.__fileOut2)
                 print("\n\n************************************\n\n")
                 print("\n\n************************************\n\n", file=self.__fileOut)
-                print("\n\n************************************\n\n", file=self.__fileOut2)
+                if self.__pageCounter % 100 == 0:
+                    print("Current time:", datetime.datetime.now().time())
+                    print("Sleeping. . .")
+                    time.sleep(random.uniform(300, 600))
             except Exception as e:
                 print("Error in printing full page")
                 print(str(e))
@@ -172,6 +159,9 @@ class Granma(object):
         else:
             self.__startDate = datetime.datetime.strptime(str(self.__startDate.year + 1) + "01", "%Y%m")
         return self.__startDate
+
+    def closeFile(self):
+        self.__fileOut.close()
 
 
 # Main loop
@@ -196,6 +186,7 @@ def main():
         gcs.printFullPageText(linksList)
         n += 1
         gcs.goToNextResultsPage(startdate, enddate, n)
+    gcs.closeFile()
 
 
 
